@@ -26,8 +26,10 @@ DROP TABLE IF EXISTS messages;
 CREATE TABLE IF NOT EXISTS messages (
     id UUID UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
     channel_id UUID NOT NULL REFERENCES channels(id),
+    user_id UUID NOT NULL REFERENCES users(id),
     data JSONB NOT NULL
-    -- inside we can store the sender of the message, and the content of the message, and the timestamp of the message, and the reciever of the message
+    -- stores the message and time
+    -- {message: string, timestamp: string}
 );
 
 CREATE TABLE IF NOT EXISTS dms (

@@ -57,6 +57,15 @@ app.post('/api/v0/workspaces/:id/channels', auth.check, routes.createChannel);
 app.get('/api/v0/workspaces/:id/channels', auth.check, routes.getChannels);
 // CREATE A ROUTE TO GET ALL USERS FOR A WORKSPACE
 app.get('/api/v0/workspaces/:id/users', auth.check, routes.getUsers);
+// Add routes for messages
+app.get('/api/v0/channels/:channelId/messages',
+    auth.check, routes.getChannelMessages);
+app.get('/api/v0/dm/:userId/messages', auth.check, routes.getDMMessages);
+// Add routes for sending messages
+app.post('/api/v0/channels/:channelId/messages',
+    auth.check, routes.sendChannelMessage);
+app.post('/api/v0/dm/:userId/messages',
+    auth.check, routes.sendDMMessage);
 
 app.use((err, req, res, next) => {
   res.status(err.status).json({

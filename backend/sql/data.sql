@@ -149,8 +149,234 @@ SET data = jsonb_set(
     (SELECT to_jsonb(channel_id::text) FROM cse101_channel)
 );
 
+-- Insert example messages in the General channel
+WITH 
+general_channel AS (
+    SELECT c.id as channel_id 
+    FROM channels c 
+    JOIN workspaces w ON c.workspace_id = w.id
+    WHERE c.data->>'name' = 'General' AND w.data->>'name' = 'CSE 101'
+),
+users_data AS (
+    SELECT id, data->>'name' AS name, data->>'email' AS email
+    FROM users
+)
+-- Insert messages into the General channel
+INSERT INTO messages (channel_id, user_id, data)
+SELECT 
+    gc.channel_id,
+    u.id,
+    '{"message": "Welcome to the General channel everyone! This will be our main communication channel for the course.", "timestamp": "2023-09-01T09:00:00Z"}'::jsonb
+FROM users_data u
+JOIN general_channel gc ON TRUE  
+WHERE u.email = 'anna@books.com';
 
+WITH 
+general_channel AS (
+    SELECT c.id as channel_id 
+    FROM channels c 
+    JOIN workspaces w ON c.workspace_id = w.id
+    WHERE c.data->>'name' = 'General' AND w.data->>'name' = 'CSE 101'
+),
+users_data AS (
+    SELECT id, data->>'name' AS name, data->>'email' AS email
+    FROM users
+)
+-- Add another message to General channel from Molly
+INSERT INTO messages (channel_id, user_id, data)
+SELECT 
+    gc.channel_id,
+    u.id,
+    '{"message": "Thanks for setting this up! Looking forward to the course.", "timestamp": "2023-09-01T09:15:00Z"}'::jsonb
+FROM users_data u
+JOIN general_channel gc ON TRUE
+WHERE u.email = 'molly@books.com';
 
+WITH 
+general_channel AS (
+    SELECT c.id as channel_id 
+    FROM channels c 
+    JOIN workspaces w ON c.workspace_id = w.id
+    WHERE c.data->>'name' = 'General' AND w.data->>'name' = 'CSE 101'
+),
+users_data AS (
+    SELECT id, data->>'email' AS email
+    FROM users
+)
+INSERT INTO messages (channel_id, user_id, data)
+SELECT 
+    gc.channel_id,
+    u.id,
+    '{"message": "Hello everyone! Excited to be part of this class.", "timestamp": "2023-09-01T09:30:00Z"}'::jsonb
+FROM users_data u
+JOIN general_channel gc ON TRUE
+WHERE u.email = 'user@example.com';
 
+-- users_data AS (
+--     SELECT id, data->>'name' AS name, data->>'email' AS email
+--     FROM users
+-- )
+-- -- Insert announcement from Anna
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     ac.channel_id,
+--     u.id,
+--     '{"message": "Welcome to CSE 101! The course syllabus has been posted to the course website.", "timestamp": "2023-09-02T10:00:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN announcements_channel ac ON TRUE
+-- WHERE u.email = 'anna@books.com';
 
+-- -- Add second announcement from Anna
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     ac.channel_id,
+--     u.id,
+--     '{"message": "Office hours will begin next week. The schedule is posted on the course website.", "timestamp": "2023-09-03T11:00:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN announcements_channel ac ON TRUE
+-- WHERE u.email = 'anna@books.com';
+
+-- -- Add third announcement from Anna
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     ac.channel_id,
+--     u.id,
+--     '{"message": "First quiz will be on Friday. Please review chapters 1-3 in the textbook.", "timestamp": "2023-09-05T08:30:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN announcements_channel ac ON TRUE
+-- WHERE u.email = 'anna@books.com';
+
+-- -- Insert messages in the Assignments channel
+-- WITH 
+-- assignments_channel AS (
+--     SELECT c.id as channel_id 
+--     FROM channels c 
+--     JOIN workspaces w ON c.workspace_id = w.id
+--     WHERE c.data->>'name' = 'Assignments' AND w.data->>'name' = 'CSE 101'
+-- ),
+-- users_data AS (
+--     SELECT id, data->>'name' AS name, data->>'email' AS email
+--     FROM users
+-- )
+-- -- Insert assignment info from Anna
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     ac.channel_id,
+--     u.id,
+--     '{"message": "Assignment 1 has been posted. Due date: September 15th. Please submit through the course portal.", "timestamp": "2023-09-04T14:00:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN assignments_channel ac ON TRUE
+-- WHERE u.email = 'anna@books.com';
+
+-- -- Add question from Regular User
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     ac.channel_id,
+--     u.id,
+--     '{"message": "Is collaboration allowed on Assignment 1?", "timestamp": "2023-09-04T15:30:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN assignments_channel ac ON TRUE
+-- WHERE u.email = 'user@example.com';
+
+-- -- Add response from Anna
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     ac.channel_id,
+--     u.id,
+--     '{"message": "You may discuss approaches with classmates, but all code must be written individually.", "timestamp": "2023-09-04T16:00:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN assignments_channel ac ON TRUE
+-- WHERE u.email = 'anna@books.com';
+
+-- -- Add second assignment from Anna
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     ac.channel_id,
+--     u.id,
+--     '{"message": "Assignment 2 has been posted. Due date: September 29th. This one covers binary trees and graph algorithms.", "timestamp": "2023-09-18T13:00:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN assignments_channel ac ON TRUE
+-- WHERE u.email = 'anna@books.com';
+
+-- -- Insert messages in the Discussions channel
+-- WITH 
+-- discussions_channel AS (
+--     SELECT c.id as channel_id 
+--     FROM channels c 
+--     JOIN workspaces w ON c.workspace_id = w.id
+--     WHERE c.data->>'name' = 'Discussions' AND w.data->>'name' = 'CSE 101'
+-- ),
+-- users_data AS (
+--     SELECT id, data->>'name' AS name, data->>'email' AS email
+--     FROM users
+-- )
+-- -- Insert discussion starter from Molly
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     dc.channel_id,
+--     u.id,
+--     '{"message": "Has anyone started working on the binary search implementation for Assignment 1?", "timestamp": "2023-09-05T18:00:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN discussions_channel dc ON TRUE
+-- WHERE u.email = 'molly@books.com';
+
+-- -- Add response from Regular User
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     dc.channel_id,
+--     u.id,
+--     '{"message": "I just started. Are you using iterative or recursive approach?", "timestamp": "2023-09-05T18:15:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN discussions_channel dc ON TRUE
+-- WHERE u.email = 'user@example.com';
+
+-- -- Add follow-up from Molly
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     dc.channel_id,
+--     u.id,
+--     '{"message": "I'm trying both to see which is more efficient. The recursive solution is more elegant though.", "timestamp": "2023-09-05T18:30:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN discussions_channel dc ON TRUE
+-- WHERE u.email = 'molly@books.com';
+
+-- -- Add comment from Anna
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     dc.channel_id,
+--     u.id,
+--     '{"message": "Good discussion! Remember to analyze the time and space complexity for both approaches in your submission.", "timestamp": "2023-09-05T19:00:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN discussions_channel dc ON TRUE
+-- WHERE u.email = 'anna@books.com';
+
+-- -- Add new discussion topic
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     dc.channel_id,
+--     u.id,
+--     '{"message": "Does anyone have a good resource for understanding hash table collisions? The textbook explanation is a bit confusing.", "timestamp": "2023-09-07T14:00:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN discussions_channel dc ON TRUE
+-- WHERE u.email = 'user@example.com';
+
+-- -- Add response from Molly
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     dc.channel_id,
+--     u.id,
+--     '{"message": "I found this YouTube tutorial really helpful: https://www.youtube.com/watch?v=hashexample. It visualizes the collision resolution methods.", "timestamp": "2023-09-07T14:30:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN discussions_channel dc ON TRUE
+-- WHERE u.email = 'molly@books.com';
+
+-- -- Add response from Anna with additional resource
+-- INSERT INTO messages (channel_id, user_id, data)
+-- SELECT 
+--     dc.channel_id,
+--     u.id,
+--     '{"message": "I'll also share some additional notes on hash table implementations in the next lecture. Check the course website for practice problems.", "timestamp": "2023-09-07T15:00:00Z"}'::jsonb
+-- FROM users_data u
+-- JOIN discussions_channel dc ON TRUE
+-- WHERE u.email = 'anna@books.com';
 

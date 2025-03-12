@@ -22,6 +22,11 @@ export const WorkspaceProvider = ({children}) => {
   const [currentWorkspace, setCurrentWorkspace] = useState(null);
   const [currentChannel, setCurrentChannel] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [selectedChannel, setSelectedChannel] = useState(null);
+  const [selectedDM, setSelectedDM] = useState(null);
+  const [viewingMessages, setViewingMessages] = useState(false);
+  const [selectedChannelData, setSelectedChannelData] = useState(null);
+  const [selectedDMData, setSelectedDMData] = useState(null);
 
   const value = {
     currentWorkspace,
@@ -30,6 +35,16 @@ export const WorkspaceProvider = ({children}) => {
     setCurrentChannel,
     currentUser,
     setCurrentUser,
+    selectedChannel,
+    setSelectedChannel,
+    selectedDM,
+    setSelectedDM,
+    viewingMessages,
+    setViewingMessages,
+    selectedChannelData,
+    setSelectedChannelData,
+    selectedDMData,
+    setSelectedDMData,
   };
 
   return (

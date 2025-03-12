@@ -178,146 +178,218 @@ export async function getUsers(req, res) {
   res.status(200).json(result.rows);
 }
 
-//   await pool.query(
-//       'INSERT INTO workspace_users (workspace_id, user_id) VALUES ($1, $2)',
-//       [workspaceId, userId],
-//   );
+/**
+ * Get messages for a specific channel
+ * @param {object} req - Express request object
+ * @param {object} res - Express response object
+ * @returns {Promise<void>} - Sends JSON response with channel messages
+ */
+export async function getChannelMessages(req, res) {
+  const channelId = req.params.channelId;
 
-//   res.status(201).json({message: 'User added to workspace successfully'});
-// }
+  try {
+    // Verify that the channel exists
+    const channelResult = await pool.query(
+        'SELECT * FROM channels WHERE id = $1',
+        [channelId],
+    );
 
-// // GET /api/v0/workspaces/users/:workspaceId
-// /**
-//  * Gets all users for a workspace
-//  * @param {object} req - Express request object
-//  * @param {object} res - Express response object
-//  * @returns {Promise<void>}
-//  - Sends JSON response with success message or error
-//  */
-// export async function getUsersForWorkspace(req, res) {
-//   const {workspaceId} = req.params;
+    if (channelResult.rows.length === 0) {
+      return res.status(404).json({error: 'Channel not found'});
+    }
 
-//   const result = await pool.query(
-//       `SELECT u.id, u.data
-//        FROM workspace_users wu
-//        JOIN users u ON wu.user_id = u.id
-//        WHERE wu.workspace_id = $1`,
-//       [workspaceId],
-//   );
+    // Get messages for the channel
+    const result = await pool.query(
+        `SELECT m.id, m.user_id, m.data, u.data->>'name' as sender_name
+         FROM messages m
+         JOIN users u ON m.user_id = u.id
+         WHERE m.channel_id = $1
+         ORDER BY m.data->>'timestamp' ASC`,
+        [channelId],
+    );
 
-//   res.status(200).json(result.rows);
-// }
+    // Format the messages for the client
+    const messages = result.rows.map((row) => ({
+      id: row.id,
+      content: row.data.message,
+      sender: row.sender_name,
+      timestamp: row.data.timestamp,
+      userId: row.user_id,
+    }));
 
-// // POST /api/v0/workspaces/channels
-// /**
-//  * Creates a new channel
-//  * @param {object} req - Express request object
-//  * @param {object} res - Express response object
-//  * @returns {Promise<void>}
-//  - Sends JSON response with success message or error
-//  */
-// export async function createChannel(req, res) {
-//   const {workspaceId, name, description, admin} = req.body;
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error('Error fetching channel messages:', error);
+    res.status(500).json({error: 'Failed to fetch channel messages'});
+  }
+}
 
-//   const channelData = {
-//     name,
-//     description,
-//     admin,
-//     createdAt: new Date().toISOString(),
-//   };
+/**
+ * Get direct messages between two users
+ * @param {object} req - Express request object
+ * @param {object} res - Express response object
+ * @returns {Promise<void>} - Sends JSON response with DM messages
+ */
+export async function getDMMessages(req, res) {
+  const userId = req.user.id;
+  const otherUserId = req.params.userId;
 
-//   await pool.query(
-//       'INSERT INTO channels (workspace_id, data) VALUES ($1, $2)',
-//       [workspaceId, channelData],
-//   );
+  try {
+    // Check if the other user exists
+    const userResult = await pool.query(
+        'SELECT * FROM users WHERE id = $1',
+        [otherUserId],
+    );
 
-//   res.status(201).json({message: 'Channel created successfully'});
-// }
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({error: 'User not found'});
+    }
 
-// // GET /api/v0/workspaces/channels
-// /**
-//  * Gets all channels for a workspace
-//  * @param {object} req - Express request object
-//  * @param {object} res - Express response object
-//  * @returns {Promise<void>}
-//  - Sends JSON response with success message or error
-//  */
-// export async function getChannels(req, res) {
-//   const {workspaceId} = req.query;
+    // Get messages between the two users
+    const result = await pool.query(
+        `SELECT d.id, d.sender_id, d.receiver_id, d.data, 
+                u1.data->>'name' as sender_name, 
+                u2.data->>'name' as receiver_name
+         FROM dms d
+         JOIN users u1 ON d.sender_id = u1.id
+         JOIN users u2 ON d.receiver_id = u2.id
+         WHERE (d.sender_id = $1 AND d.receiver_id = $2)
+            OR (d.sender_id = $2 AND d.receiver_id = $1)
+         ORDER BY d.data->>'timestamp' ASC`,
+        [userId, otherUserId],
+    );
 
-//   const result = await pool.query(
-//       'SELECT id, data FROM channels WHERE workspace_id = $1',
-//       [workspaceId],
-//   );
+    // Format the messages for the client
+    const messages = result.rows.map((row) => {
+      const isFromCurrentUser = row.sender_id === userId;
+      return {
+        id: row.id,
+        content: row.data.content,
+        sender: isFromCurrentUser ? 'You' : row.sender_name,
+        timestamp: row.data.timestamp,
+        userId: row.sender_id,
+      };
+    });
 
-//   res.status(200).json(result.rows);
-// }
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error('Error fetching DM messages:', error);
+    res.status(500).json({error: 'Failed to fetch DM messages'});
+  }
+}
 
-// // POST /api/v0/workspaces/channels/messages
-// /**
-//  * Creates a new message
-//  * @param {object} req - Express request object
-//  * @param {object} res - Express response object
-//  * @returns {Promise<void>}
-//  - Sends JSON response with success message or error
-//  */
-// export async function createMessage(req, res) {
-//   const {channelId, content, userId} = req.body;
+/**
+ * Send a message to a specific channel
+ * @param {object} req - Express request object
+ * @param {object} res - Express response object
+ * @returns {Promise<void>} - Sends JSON response with the created message
+ */
+export async function sendChannelMessage(req, res) {
+  const userId = req.user.id;
+  const channelId = req.params.channelId;
+  const {content} = req.body;
 
-//   const messageData = {
-//     content,
-//     senderId: userId,
-//     createdAt: new Date().toISOString(),
-//   };
+  try {
+    // Verify that the channel exists
+    const channelResult = await pool.query(
+        'SELECT * FROM channels WHERE id = $1',
+        [channelId],
+    );
 
-//   await pool.query(
-//       'INSERT INTO messages (channel_id, data) VALUES ($1, $2)',
-//       [channelId, messageData],
-//   );
+    if (channelResult.rows.length === 0) {
+      return res.status(404).json({error: 'Channel not found'});
+    }
 
-//   res.status(201).json({message: 'Message created successfully'});
-// }
+    // Create message data
+    const messageData = {
+      message: content,
+      timestamp: new Date().toISOString(),
+    };
 
-// // GET /api/v0/workspaces/channels/messages/:channelId
-// /**
-//  * Gets all messages for a channel
-//  * @param {object} req - Express request object
-//  * @param {object} res - Express response object
-//  * @returns {Promise<void>}
-//  - Sends JSON response with success message or error
-//  */
-// export async function getMessages(req, res) {
-//   const {channelId} = req.params;
+    // Insert the message
+    const result = await pool.query(
+        `INSERT INTO messages (channel_id, user_id, data)
+         VALUES ($1, $2, $3) RETURNING id`,
+        [channelId, userId, messageData],
+    );
 
-//   const result = await pool.query(
-//       'SELECT data FROM messages WHERE channel_id = $1',
-//       [channelId],
-//   );
+    // Get user info for response
+    const userResult = await pool.query(
+        'SELECT data->>"name" as name FROM users WHERE id = $1',
+        [userId],
+    );
 
-//   res.status(200).json(result.rows);
-// }
+    const messageId = result.rows[0].id;
+    const senderName = userResult.rows[0].name;
 
-// // GET /api/v0/users
-// /**
-//  * Gets all users (for development purposes only)
-//  * @param {object} req - Express request object
-//  * @param {object} res - Express response object
-//  * @returns {Promise<void>} - Sends JSON response with all users
-//  */
-// export async function getAllUsers(req, res) {
-//   const result = await pool.query(
-//       'SELECT id, data FROM users',
-//   );
+    // Return the created message
+    res.status(201).json({
+      id: messageId,
+      content: messageData.message,
+      sender: senderName,
+      timestamp: messageData.timestamp,
+      userId: userId,
+    });
+  } catch (error) {
+    console.error('Error sending channel message:', error);
+    res.status(500).json({error: 'Failed to send message to channel'});
+  }
+}
 
-//   // Remove sensitive information like passwords
-//   const users = result.rows.map((row) => {
-//     const userData = {...row.data};
-//     delete userData.password;
-//     return {
-//       id: row.id,
-//       data: userData,
-//     };
-//   });
+/**
+ * Send a direct message to another user
+ * @param {object} req - Express request object
+ * @param {object} res - Express response object
+ * @returns {Promise<void>} - Sends JSON response with the created message
+ */
+export async function sendDMMessage(req, res) {
+  const senderId = req.user.id;
+  const receiverId = req.params.userId;
+  const {content} = req.body;
 
-//   res.status(200).json(users);
-// };
+  try {
+    // Check if the receiver user exists
+    const userResult = await pool.query(
+        'SELECT * FROM users WHERE id = $1',
+        [receiverId],
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({error: 'User not found'});
+    }
+
+    // Create message data
+    const messageData = {
+      content: content,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Insert the direct message
+    const result = await pool.query(
+        `INSERT INTO dms (sender_id, receiver_id, data)
+         VALUES ($1, $2, $3) RETURNING id`,
+        [senderId, receiverId, messageData],
+    );
+
+    // Get user info for response
+    const senderResult = await pool.query(
+        'SELECT data->>"name" as name FROM users WHERE id = $1',
+        [senderId],
+    );
+
+    const messageId = result.rows[0].id;
+    const senderName = senderResult.rows[0].name;
+
+    // Return the created message
+    res.status(201).json({
+      id: messageId,
+      content: messageData.content,
+      sender: senderName,
+      timestamp: messageData.timestamp,
+      userId: senderId,
+    });
+  } catch (error) {
+    console.error('Error sending DM message:', error);
+    res.status(500).json({error: 'Failed to send direct message'});
+  }
+}

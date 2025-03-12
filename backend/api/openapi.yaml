@@ -473,6 +473,280 @@ paths:
                     type: string
                     example: Server error
 
+  /channels/{channelId}/messages:
+    get:
+      summary: Get messages for a specific channel
+      description: Retrieves all messages for the specified channel
+      operationId: getChannelMessages
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the channel
+      responses:
+        '200':
+          description: List of channel messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      description: Message ID
+                    content:
+                      type: string
+                      description: Message content
+                    sender:
+                      type: string
+                      description: Sender's name
+                    timestamp:
+                      type: string
+                      format: date-time
+                      description: Message timestamp
+                    userId:
+                      type: string
+                      format: uuid
+                      description: Sender's user ID
+        '404':
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Channel not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to fetch channel messages
+
+    post:
+      summary: Send a message to a specific channel
+      description: Sends a new message to the specified channel
+      operationId: sendChannelMessage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the channel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  description: Message content
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: Message ID
+                  content:
+                    type: string
+                    description: Message content
+                  sender:
+                    type: string
+                    description: Sender's name
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: Message timestamp
+                  userId:
+                    type: string
+                    format: uuid
+                    description: Sender's user ID
+        '404':
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Channel not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to send message to channel
+
+  /dm/{userId}/messages:
+    get:
+      summary: Get direct messages with a specific user
+      description: Retrieves all direct messages between the authenticated user and the specified user
+      operationId: getDMMessages
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the other user
+      responses:
+        '200':
+          description: List of direct messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      description: Message ID
+                    content:
+                      type: string
+                      description: Message content
+                    sender:
+                      type: string
+                      description: Sender's name (or 'You' for authenticated user)
+                    timestamp:
+                      type: string
+                      format: date-time
+                      description: Message timestamp
+                    userId:
+                      type: string
+                      format: uuid
+                      description: Sender's user ID
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to fetch DM messages
+    
+    post:
+      summary: Send a direct message to a specific user
+      description: Sends a new direct message to the specified user
+      operationId: sendDMMessage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the recipient user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  description: Message content
+      responses:
+        '201':
+          description: Direct message sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: Message ID
+                  content:
+                    type: string
+                    description: Message content
+                  sender:
+                    type: string
+                    description: Sender's name (returns 'You')
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: Message timestamp
+                  userId:
+                    type: string
+                    format: uuid
+                    description: Sender's user ID
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to send direct message
+
 components:
   securitySchemes:
     bearerAuth:

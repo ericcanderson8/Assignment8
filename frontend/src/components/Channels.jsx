@@ -18,7 +18,6 @@ import AddIcon from '@mui/icons-material/Add';
 import PersonIcon from '@mui/icons-material/Person';
 import {styled} from '@mui/material/styles';
 import {useWorkspace} from '../context/WorkspaceContext';
-import MessageArea from './messaging/MessageArea';
 
 // Styled components for custom UI elements
 const SectionHeader = styled(Box)(({theme}) => ({
@@ -74,22 +73,30 @@ export default function Channels() {
   const [directMessagesOpen, setDirectMessagesOpen] = useState(true);
 
   // State for selected items
-  const [selectedChannel, setSelectedChannel] = useState(null);
-  const [selectedDM, setSelectedDM] = useState(null);
+  //   const [selectedChannel, setSelectedChannel] = useState(null);
+  //   const [selectedDM, setSelectedDM] = useState(null);
 
   // State for channels data
   const [channels, setChannels] = useState([]);
   const [users, setUsers] = useState([]);
 
   // State for storing the selected channel/DM details
-  const [selectedChannelData, setSelectedChannelData] = useState(null);
-  const [selectedDMData, setSelectedDMData] = useState(null);
-
+  // Gonna put these in Context to use when I separate it to another file
   // State to track if we're viewing message area (for mobile)
-  const [viewingMessages, setViewingMessages] = useState(false);
+  //   const [viewingMessages, setViewingMessages] = useState(false);
 
   // Get current workspace from context
-  const {currentWorkspace, currentUser} = useWorkspace();
+  const {currentWorkspace,
+    currentUser,
+    selectedChannel,
+    setSelectedChannel,
+    selectedDM,
+    setSelectedDM,
+    setViewingMessages,
+    setSelectedChannelData,
+    setSelectedDMData,
+  } = useWorkspace();
+  // put set selected channel and set in useWorkspace context
 
   const fetchUsers = async () => {
     if (!currentWorkspace) return;
@@ -158,37 +165,31 @@ export default function Channels() {
     }
   }, [selectedDM, users]);
 
-  // Handler for selecting a channel
+
   const handleSelectChannel = (channelId) => {
     setSelectedChannel(channelId);
+    setSelectedChannelData(channels.find((ch) => (ch.id) === channelId));
     setSelectedDM(null); // Deselect any DM
+    setSelectedDMData(null); // Clear any DM data
     setViewingMessages(true); // Switch to message view on mobile
   };
 
   // Handler for selecting a DM
   const handleSelectDM = (dmId) => {
     setSelectedDM(dmId);
+    setSelectedDMData(users.find((user) => (user.id) === dmId));
     setSelectedChannel(null); // Deselect any channel
+    setSelectedChannelData(null); // Clear any channel data
     setViewingMessages(true); // Switch to message view on mobile
   };
 
+  // this one will move to another file
   // Handler for going back to channel list
-  const handleBackToChannels = () => {
-    setViewingMessages(false);
-  };
+  //   const handleBackToChannels = () => {
+  //     setViewingMessages(false);
+  //   };
 
   // If we're on mobile and viewing messages, only show the message area
-  if (viewingMessages && (selectedChannelData || selectedDMData)) {
-    return (
-      <MessageArea
-        channelId={selectedChannelData?.id || null}
-        channelName={selectedChannelData?.name || null}
-        dmId={selectedDMData?.id || null}
-        dmName={selectedDMData?.name || null}
-        onBack={handleBackToChannels}
-      />
-    );
-  }
 
   // Otherwise, show the channel list
   return (

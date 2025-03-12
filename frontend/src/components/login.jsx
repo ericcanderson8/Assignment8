@@ -9,7 +9,7 @@ import {
   Alert,
 } from '@mui/material';
 import {useNavigate} from 'react-router-dom';
-
+import {useWorkspace} from '../context/WorkspaceContext';
 /**
  * Login component for user authentication
  * @returns {object} Login form
@@ -19,7 +19,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
+  const {setCurrentUser} = useWorkspace();
   /**
    * Handles form submission
    * @param {Event} e - Form submission event
@@ -49,13 +49,16 @@ export default function Login() {
       const data = await response.json();
       // Store token for authenticated requests
       localStorage.setItem('token', data.accessToken);
-      localStorage.setItem('name', data.name || '');
+      localStorage.setItem('name', data.name);
+      localStorage.setItem('id', data.id);
+      setCurrentUser(data.id);
+      //   console.log('data', data);
 
       // Navigate to dashboard after successful login
       navigate('/dashboard');
     } catch (err) {
       setError(err.message);
-      console.error('Login error:', err);
+    //   console.error('Login error:', err);
     }
   };
 

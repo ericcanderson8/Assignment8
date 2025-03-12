@@ -19,8 +19,7 @@ CREATE TABLE IF NOT EXISTS channels (
     id UUID UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id),
     data JSONB NOT NULL
-    -- inside we can store the admin of the channel, and that person has the ability to add or remove people from the channel, and create channels
-    -- we can also store the name of the channel, and the description of the channel, and the members of the channel
+    -- {name: string} channel name
 );
 
 DROP TABLE IF EXISTS messages;

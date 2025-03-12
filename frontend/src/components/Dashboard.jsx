@@ -3,6 +3,7 @@ import {Container} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import Header from './Header';
 import Channels from './Channels';
+import {useWorkspace} from '../context/WorkspaceContext';
 /**
  * Dashboard component shown after successful login
  * @returns {object} Dashboard UI
@@ -10,12 +11,13 @@ import Channels from './Channels';
 export default function Dashboard() {
 //   const [userName, setUserName] = useState('');
   const navigate = useNavigate();
-
+  const {setCurrentUser} = useWorkspace();
   useEffect(() => {
     // Check if user is logged in
     const token = localStorage.getItem('token');
     // const name = localStorage.getItem('name');
-
+    const userId = localStorage.getItem('id');
+    setCurrentUser(userId);
     if (!token) {
       // Redirect to login if not authenticated
       navigate('/login');

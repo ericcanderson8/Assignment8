@@ -55,22 +55,17 @@ export async function createWorkspace(req, res) {
 export async function getWorkspaces(req, res) {
   const userId = req.user.id;
 
-  let result = await pool.query(
-      'SELECT * FROM workspaces',
-  );
-  //   console.log(userId);
-  //   console.log('result', result.rows);
+
   const query = `
     SELECT 
     w.id,
     w.data->>'name' as name,
-    wu.data->>'role' as role,
-    wu.data->>'current' as current
+    wu.data->>'role' as role
     FROM workspaces w
     JOIN workspace_users wu ON w.id = wu.workspace_id
     WHERE wu.user_id = $1
   `;
-  result = await pool.query(query, [userId]);
+  const result = await pool.query(query, [userId]);
 
   res.status(200).json(result.rows);
 }
@@ -84,35 +79,46 @@ export async function getWorkspaces(req, res) {
  * @returns {Promise<void>} - Sends JSON response with success message or error
  */
 export async function setCurrentWorkspace(req, res) {
-  const userId = req.user.id;
   const {workspaceId} = req.body;
-  //   console.log('workspaceId', workspaceId);
+  const userId = req.user.id;
 
-  // Start a transaction
-  const client = await pool.connect();
-  await client.query('BEGIN');
-
-  // First, set all workspaces to current=false for this user
-  await client.query(
-      `UPDATE workspace_users 
-        SET data = jsonb_set(data, '{current}', 'false'::jsonb)
-        WHERE user_id = $1`,
-      [userId],
+  await pool.query(
+      `UPDATE users SET data =
+       jsonb_set(data, '{currentWorkspace}', to_jsonb($1::text)) WHERE id = $2`,
+      [workspaceId, userId],
   );
 
-  // Then set the selected workspace to current=true
-  await client.query(
-      `UPDATE workspace_users 
-        SET data = jsonb_set(data, '{current}', 'true'::jsonb)
-        WHERE user_id = $1 AND workspace_id = $2`,
-      [userId, workspaceId],
-  );
-
-  await client.query('COMMIT');
   res.status(200).json({message: 'Current workspace updated successfully'});
 }
 
-// GET /api/v0/workspaces/channels
+// GET /api/v0/workspaces/current
+/**
+ * Gets the current workspace for a user
+ * @param {object} req - Express request object
+ * @param {object} res - Express response object
+ * @returns {Promise<void>} - Sends JSON response with success message or error
+ */
+export async function getCurrentWorkspace(req, res) {
+  const userId = req.user.id;
+
+  const result = await pool.query(
+      //   `SELECT data->>'currentWorkspace' AS currentWorkspace
+      //    FROM users WHERE id = $1`,
+      //   [userId],
+      `SELECT data->>'currentWorkspace' AS "currentWorkspace"
+       FROM users WHERE id = $1`,
+      [userId],
+  );
+  if (!result.rows.length || !result.rows[0].currentWorkspace) {
+    return res.status(404).json({message: 'No current workspace found'});
+  }
+  const currentWorkspace = result.rows[0].currentWorkspace;
+
+  res.status(200).json({currentWorkspace});
+}
+
+
+// GET /api/v0/workspaces/:id/channels
 /**
  * Gets all channels for a workspace
  * @param {object} req - Express request object
@@ -123,10 +129,10 @@ export async function getChannels(req, res) {
   const {id} = req.params;
 
   const result = await pool.query(
-      'SELECT * FROM channels WHERE workspace_id = $1',
+      `SELECT id, data->>'name' as name
+       FROM channels WHERE workspace_id = $1`,
       [id],
   );
-
   res.status(200).json(result.rows);
 }
 
@@ -138,8 +144,39 @@ export async function getChannels(req, res) {
  * @returns {Promise<void>}
  - Sends JSON response with success message or error
  */
-// export async function addUserToWorkspace(req, res) {
-//   const {workspaceId, userId} = req.body;
+export async function createChannel(req, res) {
+  const {id} = req.params; // workspace id
+  const {name} = req.body; // channel name
+
+  await pool.query(
+      'INSERT INTO channels (workspace_id, data) VALUES ($1, $2) RETURNING id',
+      [id, {name}],
+  );
+
+  res.status(201).json({message: 'Channel created successfully'});
+}
+
+// GET /api/v0/workspaces/:id/users
+/**
+ * Gets all users for a workspace
+ * @param {object} req - Express request object
+ * @param {object} res - Express response object
+ * @returns {Promise<void>} - Sends JSON response with success message or error
+ */
+export async function getUsers(req, res) {
+  const {id} = req.params; // workspace id
+
+  const result = await pool.query(
+      `SELECT u.id, u.data->>'name' as name,
+       (u.data->'online')::boolean as online
+       FROM workspace_users wu
+       JOIN users u ON wu.user_id = u.id
+       WHERE wu.workspace_id = $1`,
+      [id],
+  );
+
+  res.status(200).json(result.rows);
+}
 
 //   await pool.query(
 //       'INSERT INTO workspace_users (workspace_id, user_id) VALUES ($1, $2)',

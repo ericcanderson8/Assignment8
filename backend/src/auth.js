@@ -52,7 +52,10 @@ export async function login(req, res) {
           expiresIn: '14d',
           algorithm: 'HS256',
         });
-    res.status(200).json({name: user.name, accessToken: accessToken});
+    res.status(200).json({name: user.name,
+      accessToken: accessToken,
+      id: result.rows[0].id,
+    });
   } else {
     res.status(401).send('Invalid credentials');
   }
@@ -116,6 +119,9 @@ export async function register(req, res) {
     name,
     role,
     createdAt: new Date().toISOString(),
+    currentWorkspace: null,
+    currentChannel: null,
+    online: false,
   };
 
   // Insert user into database

@@ -20,10 +20,16 @@ export const useWorkspace = () => {
  */
 export const WorkspaceProvider = ({children}) => {
   const [currentWorkspace, setCurrentWorkspace] = useState(null);
+  const [currentChannel, setCurrentChannel] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const value = {
     currentWorkspace,
     setCurrentWorkspace,
+    currentChannel,
+    setCurrentChannel,
+    currentUser,
+    setCurrentUser,
   };
 
   return (

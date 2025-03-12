@@ -209,6 +209,164 @@ it('should set the current workspace successfully', async () => {
   expect(response.status).toBe(200);
 });
 
+// New tests starting from getCurrentWorkspace
+
+it('should get the current workspace for the authenticated user', async () => {
+  // First create a workspace
+  const createWorkspaceResponse = await request
+      .post('/api/v0/workspaces')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({name: 'Current Workspace Test'});
+  expect(createWorkspaceResponse.status).toBe(201);
+
+  // Get the workspace ID
+  const getWorkspacesResponse = await request
+      .get('/api/v0/workspaces')
+      .set('Authorization', `Bearer ${authToken}`);
+  const workspaceId = getWorkspacesResponse.body.find(
+      (workspace) => workspace.name === 'Current Workspace Test',
+  )?.id;
+
+  // Set it as the current workspace
+  await request
+      .put('/api/v0/workspaces/current')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({workspaceId});
+
+  // Now get the current workspace
+  const response = await request
+      .get('/api/v0/workspaces/current')
+      .set('Authorization', `Bearer ${authToken}`);
+
+  expect(response.status).toBe(200);
+  expect(response.body).toHaveProperty('currentWorkspace');
+  expect(response.body.currentWorkspace).toBe(workspaceId);
+});
+
+it('should return 404 when no current workspace is set', async () => {
+  // First ensure no workspace is set as current
+  // This requires a new user with no workspace set
+
+  // Register a new user
+  const newUser = {
+    email: `test-no-workspace-${Date.now()}@example.com`,
+    password: 'password123',
+    name: 'No Workspace User',
+  };
+
+  await request
+      .post('/api/v0/register')
+      .send(newUser);
+
+  // Login with the new user
+  const loginResponse = await request
+      .post('/api/v0/login')
+      .send({
+        email: newUser.email,
+        password: newUser.password,
+      });
+
+  const newAuthToken = loginResponse.body.accessToken;
+
+  // Try to get current workspace (should fail)
+  const response = await request
+      .get('/api/v0/workspaces/current')
+      .set('Authorization', `Bearer ${newAuthToken}`);
+
+  expect(response.status).toBe(404);
+  expect(response.body.message).toBe('No current workspace found');
+});
+
+it('should get channels for a workspace', async () => {
+  // First create a workspace
+  const createWorkspaceResponse = await request
+      .post('/api/v0/workspaces')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({name: 'Channels Test Workspace'});
+  expect(createWorkspaceResponse.status).toBe(201);
+
+  // Get the workspace ID
+  const getWorkspacesResponse = await request
+      .get('/api/v0/workspaces')
+      .set('Authorization', `Bearer ${authToken}`);
+  const workspaceId = getWorkspacesResponse.body.find(
+      (workspace) => workspace.name === 'Channels Test Workspace',
+  )?.id;
+
+  // Get channels (initially empty)
+  const response = await request
+      .get(`/api/v0/workspaces/${workspaceId}/channels`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+  expect(response.status).toBe(200);
+  expect(Array.isArray(response.body)).toBe(true);
+});
+
+it('should create a channel in a workspace', async () => {
+  // First create a workspace
+  const createWorkspaceResponse = await request
+      .post('/api/v0/workspaces')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({name: 'Create Channel Test'});
+  expect(createWorkspaceResponse.status).toBe(201);
+
+  // Get the workspace ID
+  const getWorkspacesResponse = await request
+      .get('/api/v0/workspaces')
+      .set('Authorization', `Bearer ${authToken}`);
+  const workspaceId = getWorkspacesResponse.body.find(
+      (workspace) => workspace.name === 'Create Channel Test',
+  )?.id;
+
+  // Create a channel
+  const createChannelResponse = await request
+      .post(`/api/v0/workspaces/${workspaceId}/channels`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({name: 'Test Channel'});
+
+  expect(createChannelResponse.status).toBe(201);
+
+  // Verify the channel was created
+  const getChannelsResponse = await request
+      .get(`/api/v0/workspaces/${workspaceId}/channels`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+  expect(getChannelsResponse.status).toBe(200);
+  expect(Array.isArray(getChannelsResponse.body)).toBe(true);
+  expect(getChannelsResponse.body.length).toBeGreaterThan(0);
+  expect(getChannelsResponse.body[0].name).toBe('Test Channel');
+});
+
+it('should get users for a workspace', async () => {
+  // First create a workspace
+  const createWorkspaceResponse = await request
+      .post('/api/v0/workspaces')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({name: 'Users Test Workspace'});
+  expect(createWorkspaceResponse.status).toBe(201);
+
+  // Get the workspace ID
+  const getWorkspacesResponse = await request
+      .get('/api/v0/workspaces')
+      .set('Authorization', `Bearer ${authToken}`);
+  const workspaceId = getWorkspacesResponse.body.find(
+      (workspace) => workspace.name === 'Users Test Workspace',
+  )?.id;
+
+  // Get users
+  const response = await request
+      .get(`/api/v0/workspaces/${workspaceId}/users`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+  expect(response.status).toBe(200);
+  expect(Array.isArray(response.body)).toBe(true);
+  expect(response.body.length).toBeGreaterThan(0);
+  // At least the creator (admin) should be in the workspace
+  expect(response.body[0]).toHaveProperty('name');
+  expect(response.body[0]).toHaveProperty('id');
+  expect(response.body[0]).toHaveProperty('online');
+});
+
 // describe('Workspace Routes', () => {
 //   it('should create a workspace successfully', async () => {
 //     const response = await request

@@ -51,30 +51,12 @@ app.post('/api/v0/register', auth.register);
 app.post('/api/v0/workspaces', auth.check, routes.createWorkspace);
 app.get('/api/v0/workspaces', auth.check, routes.getWorkspaces);
 app.put('/api/v0/workspaces/current', auth.check, routes.setCurrentWorkspace);
+app.get('/api/v0/workspaces/current', auth.check, routes.getCurrentWorkspace);
 // CREATE A ROUTE TO GET ALL CHANNELS FOR A WORKSPACE
-app.get('/api/v0/workspaces/channels/:id', auth.check, routes.getChannels);
-app.put('/api/v0/workspaces/channels/current',
-    auth.check, routes.setCurrentChannel);
-// app.post('/api/v0/workspaces/users', auth.check, routes.addUserToWorkspace);
-// app.get(
-//     '/api/v0/workspaces/users/:workspaceId',
-//     auth.check,
-//     routes.getUsersForWorkspace,
-// );
-// app.get('/api/v0/workspaces/channels', auth.check, routes.getChannels);
-// app.post(
-//     '/api/v0/workspaces/channels/messages',
-//     auth.check,
-//     routes.createMessage,
-// );
-// app.get(
-//     '/api/v0/workspaces/channels/messages/:channelId',
-//     auth.check,
-//     routes.getMessages,
-// );
-
-// // Development route - get all users
-// app.get('/api/v0/users', auth.check, routes.getAllUsers);
+app.post('/api/v0/workspaces/:id/channels', auth.check, routes.createChannel);
+app.get('/api/v0/workspaces/:id/channels', auth.check, routes.getChannels);
+// CREATE A ROUTE TO GET ALL USERS FOR A WORKSPACE
+app.get('/api/v0/workspaces/:id/users', auth.check, routes.getUsers);
 
 app.use((err, req, res, next) => {
   res.status(err.status).json({

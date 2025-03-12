@@ -4,21 +4,21 @@
 // It will also have the dms chanels in the workspace
 // both of which have a minimize button
 
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {
   Box,
   Typography,
   List,
   ListItem,
   Collapse,
-//   IconButton,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-// import TagIcon from '@mui/icons-material/Tag';
 import AddIcon from '@mui/icons-material/Add';
 import PersonIcon from '@mui/icons-material/Person';
 import {styled} from '@mui/material/styles';
+import {useWorkspace} from '../context/WorkspaceContext';
+import MessageArea from './messaging/MessageArea';
 
 // Styled components for custom UI elements
 const SectionHeader = styled(Box)(({theme}) => ({
@@ -64,29 +64,9 @@ const StatusDot = styled('span')(({online, theme}) => ({
   right: 2,
 }));
 
-// TODO: get the channels from the backend
-// Mock data
-const channelsData = [
-  {id: 1, name: 'Assignment 1'},
-  {id: 2, name: 'Assignment 2'},
-  {id: 3, name: 'Assignment 3'},
-  {id: 4, name: 'Assignment 4'},
-  {id: 5, name: 'General'},
-];
-
-// TODO: get the dms from the backend
-const directMessagesData = [
-  {id: 1, name: 'Dilbot', online: false},
-  {id: 2, name: 'Dr Harrison (you)', online: true},
-  {id: 3, name: 'Bob Dylan', online: false},
-  {id: 4, name: 'Carole King', online: true},
-  {id: 5, name: 'George Harrison', online: false},
-  {id: 6, name: 'Joni Mitchell', online: false},
-];
-
 /**
- * Channels component
- * @returns {object} Channels UI
+ * Dashboard component shown after successful login
+ * @returns {object} Dashboard UI
  */
 export default function Channels() {
   // State for managing collapse/expand of sections
@@ -94,19 +74,135 @@ export default function Channels() {
   const [directMessagesOpen, setDirectMessagesOpen] = useState(true);
 
   // State for selected items
-  const [selectedChannel, setSelectedChannel] = useState(2);
-  const [selectedDM, setSelectedDM] = useState(3);
+  const [selectedChannel, setSelectedChannel] = useState(null);
+  const [selectedDM, setSelectedDM] = useState(null);
 
+  // State for channels data
+  const [channels, setChannels] = useState([]);
+  const [users, setUsers] = useState([]);
+
+  // State for storing the selected channel/DM details
+  const [selectedChannelData, setSelectedChannelData] = useState(null);
+  const [selectedDMData, setSelectedDMData] = useState(null);
+
+  // State to track if we're viewing message area (for mobile)
+  const [viewingMessages, setViewingMessages] = useState(false);
+
+  // Get current workspace from context
+  const {currentWorkspace, currentUser} = useWorkspace();
+
+  const fetchUsers = async () => {
+    if (!currentWorkspace) return;
+
+    const response = await fetch(
+        `http://localhost:3010/api/v0/workspaces/${currentWorkspace}/users`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+
+    const data = await response.json();
+    setUsers(data);
+  };
+
+  // Fetch channels when workspace changes
+  useEffect(() => {
+    const fetchChannels = async () => {
+      if (!currentWorkspace) return;
+
+      const response = await fetch(
+          `http://localhost:3010/api/v0/workspaces/${currentWorkspace}/channels`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+          });
+
+
+      const data = await response.json();
+      setChannels(data);
+
+      // Select first channel by default if we have channels and none selected
+      if (data && data.length > 0 && !selectedChannel) {
+        setSelectedChannel(data[0].id);
+        setSelectedChannelData(data[0]);
+      }
+    };
+
+    fetchChannels();
+    fetchUsers();
+  }, [currentWorkspace, selectedChannel]);
+
+  // Update selected channel data when selectedChannel changes
+  useEffect(() => {
+    if (selectedChannel) {
+      const channel = channels.find((ch) => (ch.id) === selectedChannel);
+      if (channel) {
+        setSelectedChannelData(channel);
+        // Clear any selected DM
+        setSelectedDM(null);
+        setSelectedDMData(null);
+      }
+    }
+  }, [selectedChannel, channels]);
+
+  // Update selected DM data when selectedDM changes
+  useEffect(() => {
+    if (selectedDM) {
+      const dm = users.find((user) => (user.id) === selectedDM);
+      if (dm) {
+        setSelectedDMData(dm);
+        // Clear any selected channel
+        setSelectedChannel(null);
+        setSelectedChannelData(null);
+      }
+    }
+  }, [selectedDM, users]);
+
+  // Handler for selecting a channel
+  const handleSelectChannel = (channelId) => {
+    setSelectedChannel(channelId);
+    setSelectedDM(null); // Deselect any DM
+    setViewingMessages(true); // Switch to message view on mobile
+  };
+
+  // Handler for selecting a DM
+  const handleSelectDM = (dmId) => {
+    setSelectedDM(dmId);
+    setSelectedChannel(null); // Deselect any channel
+    setViewingMessages(true); // Switch to message view on mobile
+  };
+
+  // Handler for going back to channel list
+  const handleBackToChannels = () => {
+    setViewingMessages(false);
+  };
+
+  // If we're on mobile and viewing messages, only show the message area
+  if (viewingMessages && (selectedChannelData || selectedDMData)) {
+    return (
+      <MessageArea
+        channelId={selectedChannelData?.id || null}
+        channelName={selectedChannelData?.name || null}
+        dmId={selectedDMData?.id || null}
+        dmName={selectedDMData?.name || null}
+        onBack={handleBackToChannels}
+      />
+    );
+  }
+
+  // Otherwise, show the channel list
   return (
-    <Box sx={{
-      width: '100%',
-      height: '100%',
-      bgcolor: 'background.paper',
-      overflow: 'auto',
-      padding: 0,
-      margin: 0,
-      boxSizing: 'border-box',
-    }}>
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        bgcolor: 'background.paper',
+        overflow: 'auto',
+        padding: 0,
+        margin: 0,
+        boxSizing: 'border-box',
+      }}
+    >
       {/* Channels Section */}
       <SectionHeader onClick={() => setChannelsOpen(!channelsOpen)}>
         {channelsOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
@@ -117,32 +213,49 @@ export default function Channels() {
 
       <Collapse in={channelsOpen} timeout="auto" unmountOnExit>
         <List component="div" disablePadding sx={{padding: 0, margin: 0}}>
-          {channelsData.map((channel) => (
-            <ChannelItem
-              key={channel.id}
-              selected={selectedChannel === channel.id}
-              onClick={() => setSelectedChannel(channel.id)}
-            >
-              <Typography variant="body1"
-                sx={{fontWeight: selectedChannel === channel.id ?
-                'bold' : 'normal'}}>
-                # {channel.name}
+          {channels.length > 0 ? (
+            channels.map((channel) => (
+              <ChannelItem
+                key={channel.id}
+                selected={selectedChannel === channel.id}
+                onClick={() => handleSelectChannel(channel.id)}
+              >
+                <Typography variant="body1"
+                  sx={{fontWeight: selectedChannel === channel.id ?
+                  'bold' : 'normal'}}>
+                  # {channel.name}
+                </Typography>
+              </ChannelItem>
+            ))
+          ) : currentWorkspace ? (
+            <ListItem sx={{pl: 3}}>
+              <Typography variant="body2" color="text.secondary">
+                No channels found
               </Typography>
-            </ChannelItem>
-          ))}
+            </ListItem>
+          ) : (
+            <ListItem sx={{pl: 3}}>
+              <Typography variant="body2" color="text.secondary">
+                Select a workspace to view channels
+              </Typography>
+            </ListItem>
+          )}
 
-          <AddItem>
-            <AddIcon sx={{mr: 1}} />
-            <Typography variant="body1"
-              sx={{}}>
-              Add Channel
-            </Typography>
-          </AddItem>
+          {currentWorkspace && (
+            <AddItem>
+              <AddIcon sx={{mr: 1}} />
+              <Typography variant="body1">
+                Add Channel
+              </Typography>
+            </AddItem>
+          )}
         </List>
       </Collapse>
 
       {/* Direct Messages Section */}
-      <SectionHeader onClick={() => setDirectMessagesOpen(!directMessagesOpen)}>
+      <SectionHeader
+        onClick={() => setDirectMessagesOpen(!directMessagesOpen)}
+      >
         {directMessagesOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
         <Typography variant="subtitle1" fontWeight="bold" sx={{ml: 1}}>
           Direct Messages
@@ -151,11 +264,11 @@ export default function Channels() {
 
       <Collapse in={directMessagesOpen} timeout="auto" unmountOnExit>
         <List component="div" disablePadding sx={{padding: 0, margin: 0}}>
-          {directMessagesData.map((dm) => (
+          {users.map((dm) => (
             <ChannelItem
               key={dm.id}
               selected={selectedDM === dm.id}
-              onClick={() => setSelectedDM(dm.id)}
+              onClick={() => handleSelectDM(dm.id)}
             >
               <Box position="relative"
                 display="inline-flex" alignItems="center">
@@ -165,15 +278,14 @@ export default function Channels() {
               <Typography variant="body1"
                 sx={{ml: 1, fontWeight: selectedDM === dm.id ?
                  'bold' : 'normal'}}>
-                {dm.name}
+                {dm.name}{(dm.id) === currentUser ? ' (you)' : ''}
               </Typography>
             </ChannelItem>
           ))}
 
           <AddItem>
             <AddIcon sx={{mr: 1}} />
-            <Typography variant="body1"
-              sx={{}}>
+            <Typography variant="body1">
               Add Teammate
             </Typography>
           </AddItem>

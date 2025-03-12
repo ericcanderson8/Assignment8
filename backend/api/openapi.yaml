@@ -163,6 +163,9 @@ paths:
                 name:
                   type: string
                   description: Workspace name
+                description:
+                  type: string
+                  description: Workspace description
       responses:
         '201':
           description: Workspace created successfully
@@ -183,7 +186,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Name and userId are required
+                    example: Name is required
         '500':
           description: Server error
           content:
@@ -213,11 +216,12 @@ paths:
                     id:
                       type: string
                       format: uuid
-                    data:
-                      type: object
-                      properties:
-                        name:
-                          type: string
+                    name:
+                      type: string
+                    role:
+                      type: string
+                    current:
+                      type: string
         '500':
           description: Server error
           content:
@@ -280,35 +284,32 @@ paths:
                   error:
                     type: string
                     example: Failed to update current workspace
-
-  /workspaces/users:
-    post:
-      summary: Add a user to a workspace
-      description: Adds a user to a workspace
-      operationId: addUserToWorkspace
+    get:
+      summary: Get current workspace for user
+      description: Gets the workspace that is marked as current for the authenticated user
+      operationId: getCurrentWorkspace
       security:
         - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - workspaceId
-                - userId
-              properties:
-                workspaceId:
-                  type: string
-                  format: uuid
-                  description: ID of the workspace
-                userId:
-                  type: string
-                  format: uuid
-                  description: ID of the user to add
       responses:
-        '201':
-          description: User added to workspace successfully
+        '200':
+          description: Current workspace information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: Workspace ID
+                  name:
+                    type: string
+                    description: Workspace name
+                  role:
+                    type: string
+                    description: User's role in the workspace
+        '404':
+          description: No current workspace found
           content:
             application/json:
               schema:
@@ -316,17 +317,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: User added to workspace successfully
-        '400':
-          description: Missing required fields
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: WorkspaceId and userId are required
+                    example: No current workspace found
         '500':
           description: Server error
           content:
@@ -336,61 +327,23 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Server error
+                    example: Failed to get current workspace
 
-  /workspaces/users/{workspaceId}:
-    get:
-      summary: Get users for a workspace
-      description: Gets all users for a workspace
-      operationId: getUsersForWorkspace
+  /workspaces/{id}/channels:
+    post:
+      summary: Create a new channel in a workspace
+      description: Creates a new channel in the specified workspace
+      operationId: createChannel
       security:
         - bearerAuth: []
       parameters:
-        - name: workspaceId
+        - name: id
           in: path
           required: true
           schema:
             type: string
             format: uuid
           description: ID of the workspace
-      responses:
-        '200':
-          description: List of users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      format: uuid
-                    data:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                        email:
-                          type: string
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Server error
-
-  /workspaces/channels:
-    post:
-      summary: Create a new channel
-      description: Creates a new channel in a workspace
-      operationId: createChannel
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -399,15 +352,10 @@ paths:
               type: object
               required:
                 - name
-                - workspaceId
               properties:
                 name:
                   type: string
                   description: Channel name
-                workspaceId:
-                  type: string
-                  format: uuid
-                  description: ID of the workspace
       responses:
         '201':
           description: Channel created successfully
@@ -428,7 +376,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Name and workspaceId are required
+                    example: Name is required
         '500':
           description: Server error
           content:
@@ -441,13 +389,13 @@ paths:
                     example: Server error
     get:
       summary: Get channels for a workspace
-      description: Gets all channels for a workspace
+      description: Gets all channels for the specified workspace
       operationId: getChannels
       security:
         - bearerAuth: []
       parameters:
-        - name: workspaceId
-          in: query
+        - name: id
+          in: path
           required: true
           schema:
             type: string
@@ -466,11 +414,8 @@ paths:
                     id:
                       type: string
                       format: uuid
-                    data:
-                      type: object
-                      properties:
-                        name:
-                          type: string
+                    name:
+                      type: string
         '500':
           description: Server error
           content:
@@ -482,124 +427,24 @@ paths:
                     type: string
                     example: Server error
 
-  /workspaces/channels/messages:
-    post:
-      summary: Create a new message
-      description: Creates a new message in a channel
-      operationId: createMessage
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - channelId
-                - userId
-                - content
-              properties:
-                channelId:
-                  type: string
-                  format: uuid
-                  description: ID of the channel
-                userId:
-                  type: string
-                  format: uuid
-                  description: ID of the user sending the message
-                content:
-                  type: string
-                  description: Message content
-      responses:
-        '201':
-          description: Message created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Message created successfully
-        '400':
-          description: Missing required fields
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: ChannelId, userId, and content are required
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Server error
-
-  /workspaces/channels/messages/{channelId}:
+  /workspaces/{id}/users:
     get:
-      summary: Get messages for a channel
-      description: Gets all messages for a channel
-      operationId: getMessages
+      summary: Get users for a workspace
+      description: Gets all users for the specified workspace
+      operationId: getUsers
       security:
         - bearerAuth: []
       parameters:
-        - name: channelId
+        - name: id
           in: path
           required: true
           schema:
             type: string
             format: uuid
-          description: ID of the channel
+          description: ID of the workspace
       responses:
         '200':
-          description: List of messages
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    data:
-                      type: object
-                      properties:
-                        content:
-                          type: string
-                        userId:
-                          type: string
-                          format: uuid
-                        timestamp:
-                          type: string
-                          format: date-time
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Server error
-
-  /users:
-    get:
-      summary: Get all users (development only)
-      description: Gets all users in the system (for development purposes only)
-      operationId: getAllUsers
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of users
+          description: List of users in the workspace
           content:
             application/json:
               schema:
@@ -610,16 +455,13 @@ paths:
                     id:
                       type: string
                       format: uuid
-                    data:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                        email:
-                          type: string
-                          format: email
-                        role:
-                          type: string
+                      description: User ID
+                    name:
+                      type: string
+                      description: User's name
+                    online:
+                      type: boolean
+                      description: User's online status
         '500':
           description: Server error
           content:

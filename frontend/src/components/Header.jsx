@@ -21,43 +21,58 @@ export default function Header() {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const [workspaces, setWorkspaces] = useState([]);
+  const [currentWorkspace, setCurrentWorkspaceState] = useState(null);
   const {setCurrentWorkspace} = useWorkspace();
 
   const fetchWorkspaces = async () => {
-    try {
-      const response = await fetch('http://localhost:3010/api/v0/workspaces', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const data = await response.json();
-      setWorkspaces(data);
-    } catch (error) {
-      console.error('Error fetching workspaces:', error);
+    const response = await fetch('http://localhost:3010/api/v0/workspaces', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    const data = await response.json();
+    setWorkspaces(data);
+  };
+
+  const fetchCurrentWorkspace = async () => {
+    const response = await fetch('http://localhost:3010/api/v0/workspaces/current', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    if (response.status === 404) {
+      // No current workspace
+      setCurrentWorkspaceState(null);
+      return;
     }
+
+    const data = await response.json();
+
+    // Make sure we're accessing the right property
+    setCurrentWorkspaceState(data);
+    setCurrentWorkspace(data.currentWorkspace);
   };
 
   useEffect(() => {
     fetchWorkspaces();
+    fetchCurrentWorkspace();
   }, []);
 
-  const setWorkspace = async (workspaceId) => {
-    try {
-      // Update workspace status in the database
-      await fetch('http://localhost:3010/api/v0/workspaces/current', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({workspaceId}),
-      });
-      // Refresh workspaces list to get updated current status
-      fetchWorkspaces();
-      setCurrentWorkspace(workspaceId);
-    } catch (error) {
-      console.error('Error setting current workspace:', error);
-    }
+
+  const setWorkspaceAsCurrent = async (workspaceId) => {
+    // Update workspace status in the database
+    await fetch('http://localhost:3010/api/v0/workspaces/current', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({workspaceId}),
+    });
+
+    // Refresh current workspace
+    fetchCurrentWorkspace();
   };
 
   const handleClick = (event) => {
@@ -72,15 +87,21 @@ export default function Header() {
     setAnchorEl(null);
   };
 
+  // Find the current workspace name from the workspaces list
+  const getCurrentWorkspaceName = () => {
+    if (!currentWorkspace) return 'Select a Workspace';
+
+    const workspace =
+     workspaces.find((ws) => (ws.id) === currentWorkspace.currentWorkspace);
+    return workspace ? workspace.name : 'Select a Workspace';
+  };
+
   return (
     <Box sx={{position: 'relative'}}>
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-            {workspaces
-                .find((ws) =>
-                  ws.current === 'true',
-                )?.name || 'Select a Workspace'}
+            {getCurrentWorkspaceName()}
           </Typography>
           <Box sx={{display: 'flex', alignItems: 'center'}}>
             <IconButton
@@ -90,6 +111,7 @@ export default function Header() {
               aria-controls={open ? 'workspace-menu' : undefined}
               aria-haspopup="true"
               aria-expanded={open ? 'true' : undefined}
+              aria-label="workspace-menu"
             >
               <ArrowDropDownIcon />
             </IconButton>
@@ -110,14 +132,17 @@ export default function Header() {
         >
           <Box sx={{p: 2}}>
             {workspaces
-                .filter((workspace) => workspace.current !== 'true')
+                .filter((workspace) =>
+                  !currentWorkspace ||
+                workspace.id!== currentWorkspace.currentWorkspace)
                 .map((workspace) => (
                   <MenuItem
                     key={workspace.id}
                     onClick={() => {
-                      setWorkspace(workspace.id);
+                      setWorkspaceAsCurrent(workspace.id);
                       handleClose();
                     }}
+                    aria-label={`View workspace: ${workspace.name}`}
                     sx={{
                       borderRadius: '4px',
                       display: 'flex',

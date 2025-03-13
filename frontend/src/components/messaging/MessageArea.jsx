@@ -32,17 +32,16 @@ export default function MessageArea({
 }) {
   const [messages, setMessages] = useState([]);
 
-  console.log('MessageArea received props:', {
-    channelId,
-    channelName,
-    dmId,
-    dmName,
-  });
+  // console.log('MessageArea received props:', {
+  //   channelId,
+  //   channelName,
+  //   dmId,
+  //   dmName,
+  // });
 
   // Fetch real messages from the backend
   useEffect(() => {
     // Different messages depending on whether it's a channel or DM
-    console.log('MessageArea useEffect - channelId:', channelId, 'dmId:', dmId);
 
     // Clear any existing messages first
     setMessages([]);
@@ -54,13 +53,9 @@ export default function MessageArea({
 
         // If we have a channel ID, fetch channel messages
         if (channelId) {
-          console.log('Fetching channel messages for:', channelName);
           url = `http://localhost:3010/api/v0/channels/${channelId}/messages`;
         } else if (dmId) {
-          console.log('Fetching DM messages for:', dmName);
           url = `http://localhost:3010/api/v0/dm/${dmId}/messages`;
-        } else {
-          return; // No ID to fetch messages with
         }
 
         const response = await fetch(url, {
@@ -69,90 +64,90 @@ export default function MessageArea({
           },
         });
 
-        if (!response.ok) {
-          // If the response fails, fall back to demo data
-          console.error('Failed to fetch messages, using demo data');
-          loadDemoMessages();
-          return;
-        }
+        // if (!response.ok) {
+        //   // If the response fails, fall back to demo data
+        //   console.error('Failed to fetch messages, using demo data');
+        //   loadDemoMessages();
+        //   return;
+        // }
 
         const data = await response.json();
         setMessages(data);
       } catch (error) {
         console.error('Error fetching messages:', error);
         // If there's an error, fall back to demo data
-        loadDemoMessages();
+        // loadDemoMessages();
       }
     };
 
-    const loadDemoMessages = () => {
-      // If we have a channel ID, load channel demo messages
-      if (channelId) {
-        setMessages([
-          {
-            id: '1',
-            content: 'Hello everyone! Welcome to the channel.',
-            sender: 'Anna',
-            timestamp: '2023-05-15T10:30:00',
-            userId: '123456',
-          },
-          {
-            id: '2',
-            content: 'Thanks for creating this channel. I think it will be ' +
-              'very useful.',
-            sender: 'Bob',
-            timestamp: '2023-05-15T10:35:00',
-            userId: '789012',
-          },
-          {
-            id: '3',
-            content: 'I agree! Let\'s start planning our project here.',
-            sender: 'Charlie',
-            timestamp: '2023-05-15T10:40:00',
-            userId: '345678',
-          },
-          {
-            id: '4',
-            content: 'Has anyone started working on the UI designs?',
-            sender: 'Anna',
-            timestamp: '2023-05-15T11:15:00',
-            userId: '123456',
-          },
-        ]);
-      } else if (dmId) {
-        setMessages([
-          {
-            id: '1',
-            content: 'Hey, how are you doing?',
-            sender: 'You',
-            timestamp: '2023-05-15T09:30:00',
-            userId: '123456',
-          },
-          {
-            id: '2',
-            content: 'I\'m good, thanks! How about you?',
-            sender: dmName,
-            timestamp: '2023-05-15T09:32:00',
-            userId: dmId,
-          },
-          {
-            id: '3',
-            content: 'Great! Did you get a chance to look at I sent?',
-            sender: 'You',
-            timestamp: '2023-05-15T09:35:00',
-            userId: '123456',
-          },
-          {
-            id: '4',
-            content: 'Yes, I did. It looks promising. Let\'s discuss it ' +
-              'tomorrow.',
-            sender: dmName,
-            timestamp: '2023-05-15T09:40:00',
-            userId: dmId,
-          },
-        ]);
-      }
-    };
+    // const loadDemoMessages = () => {
+    //   // If we have a channel ID, load channel demo messages
+    //   if (channelId) {
+    //     setMessages([
+    //       {
+    //         id: '1',
+    //         content: 'Hello everyone! Welcome to the channel.',
+    //         sender: 'Anna',
+    //         timestamp: '2023-05-15T10:30:00',
+    //         userId: '123456',
+    //       },
+    //       {
+    //         id: '2',
+    //         content: 'Thanks for creating this channel. I' +
+    //           'very useful.',
+    //         sender: 'Bob',
+    //         timestamp: '2023-05-15T10:35:00',
+    //         userId: '789012',
+    //       },
+    //       {
+    //         id: '3',
+    //         content: 'I agree! Let\'s start planning our project here.',
+    //         sender: 'Charlie',
+    //         timestamp: '2023-05-15T10:40:00',
+    //         userId: '345678',
+    //       },
+    //       {
+    //         id: '4',
+    //         content: 'Has anyone started working on the UI designs?',
+    //         sender: 'Anna',
+    //         timestamp: '2023-05-15T11:15:00',
+    //         userId: '123456',
+    //       },
+    //     ]);
+    //   } else if (dmId) {
+    //     setMessages([
+    //       {
+    //         id: '1',
+    //         content: 'Hey, how are you doing?',
+    //         sender: 'You',
+    //         timestamp: '2023-05-15T09:30:00',
+    //         userId: '123456',
+    //       },
+    //       {
+    //         id: '2',
+    //         content: 'I\'m good, thanks! How about you?',
+    //         sender: dmName,
+    //         timestamp: '2023-05-15T09:32:00',
+    //         userId: dmId,
+    //       },
+    //       {
+    //         id: '3',
+    //         content: 'Great! Did you get a chance to look at I sent?',
+    //         sender: 'You',
+    //         timestamp: '2023-05-15T09:35:00',
+    //         userId: '123456',
+    //       },
+    //       {
+    //         id: '4',
+    //         content: 'Yes, I did. It looks promising. Let\'s discuss it ' +
+    //           'tomorrow.',
+    //         sender: dmName,
+    //         timestamp: '2023-05-15T09:40:00',
+    //         userId: dmId,
+    //       },
+    //     ]);
+    //   }
+    // };
 
     fetchMessages();
   }, [channelId, dmId, channelName, dmName]);
@@ -162,61 +157,51 @@ export default function MessageArea({
    * @param {string} content - Message content
    */
   const handleSendMessage = async (content) => {
-    if (!content.trim()) return;
+    // if (!content.trim()) return;
 
-    try {
-      const token = localStorage.getItem('token');
-      let url;
+    const token = localStorage.getItem('token');
+    let url;
 
-      // Determine if we're sending to a channel or DM
-      if (channelId) {
-        url = `http://localhost:3010/api/v0/channels/${channelId}/messages`;
-      } else if (dmId) {
-        url = `http://localhost:3010/api/v0/dm/${dmId}/messages`;
-      } else {
-        console.error('No channelId or dmId provided');
-        return;
-      }
-
-      // Optimistically add message to UI
-      const tempMessage = {
-        id: `temp-${Date.now()}`,
-        content,
-        sender: 'You',
-        timestamp: new Date().toISOString(),
-        userId: 'temp-user-id', // Will be replaced with actual ID from response
-        pending: true, // Flag to show this is pending
-      };
-
-      setMessages([...messages, tempMessage]);
-
-      // Send message to backend
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({content}),
-      });
-
-      if (!response.ok) {
-        console.error('Failed to send message');
-        // Could handle error by marking the message as failed
-        return;
-      }
-
-      // Replace temp message with actual response
-      const newMessage = await response.json();
-      setMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          msg.id === tempMessage.id ? newMessage : msg,
-        ),
-      );
-    } catch (error) {
-      console.error('Error sending message:', error);
-      // Handle error appropriately
+    // Determine if we're sending to a channel or DM
+    if (channelId) {
+      url = `http://localhost:3010/api/v0/channels/${channelId}/messages`;
+    } else if (dmId) {
+      url = `http://localhost:3010/api/v0/dm/${dmId}/messages`;
     }
+    // } else {
+    //   console.error('No channelId or dmId provided');
+    //   return;
+    // }
+
+    // Optimistically add message to UI
+    const tempMessage = {
+      id: `temp-${Date.now()}`,
+      content,
+      sender: 'You',
+      timestamp: new Date().toISOString(),
+      userId: 'temp-user-id', // Will be replaced with actual ID from response
+      pending: true, // Flag to show this is pending
+    };
+
+    setMessages([...messages, tempMessage]);
+
+    // Send message to backend
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({content}),
+    });
+
+    // Replace temp message with actual response
+    const newMessage = await response.json();
+    setMessages((prevMessages) =>
+      prevMessages.map((msg) =>
+          (msg.id) === tempMessage.id ? newMessage : msg,
+      ),
+    );
   };
 
   // Determine if we're in a channel or DM

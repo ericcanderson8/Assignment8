@@ -38,7 +38,7 @@ export default function MessageInput({onSendMessage, placeholder}) {
       <TextField
         fullWidth
         variant="outlined"
-        placeholder={placeholder || 'Type a message...'}
+        placeholder={placeholder}
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         sx={{

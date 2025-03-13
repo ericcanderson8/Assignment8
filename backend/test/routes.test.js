@@ -200,7 +200,7 @@ it('should set the current workspace successfully', async () => {
       .get('/api/v0/workspaces')
       .set('Authorization', `Bearer ${authToken}`);
   expect(createResponse.status).toBe(200);
-  console.log(createResponse.body);
+  // console.log(createResponse.body);
   // Set the current workspace
   const response = await request
       .put('/api/v0/workspaces/current')

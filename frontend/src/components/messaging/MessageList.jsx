@@ -10,12 +10,8 @@ import PropTypes from 'prop-types';
 export default function MessageList({messages}) {
   // Helper function to format timestamps
   const formatTime = (timestamp) => {
-    try {
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
-    } catch {
-      return 'Invalid time';
-    }
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
   };
 
   // Format date for date headers

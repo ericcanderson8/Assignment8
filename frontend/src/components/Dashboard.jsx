@@ -40,14 +40,20 @@ export default function Dashboard() {
   if (viewingMessages && (selectedChannelData || selectedDMData)) {
     console.log('Dashboard render - Channel data:', selectedChannelData);
     console.log('Dashboard render - DM data:', selectedDMData);
+
+    // Prepare props without using "id=" format in JSX
+    const messageAreaProps = {
+      channelId: selectedChannelData?.id || null,
+      channelName: selectedChannelData?.name || null,
+      dmId: selectedDMData?.id || null,
+      dmName: selectedDMData?.name || null,
+      onBack: handleBackToChannels,
+    };
+
     return (
       <>
         <MessageArea
-          channelId={selectedChannelData?.id || null}
-          channelName={selectedChannelData?.name || null}
-          dmId={selectedDMData?.id || null}
-          dmName={selectedDMData?.name || null}
-          onBack={handleBackToChannels}
+          {...messageAreaProps}
         />
       </>
     );

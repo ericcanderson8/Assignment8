@@ -32,9 +32,9 @@ export default function Dashboard() {
   }, [navigate, setCurrentUser]);
 
   // Handler for going back to channel list
-  const handleBackToChannels = () => {
-    setViewingMessages(false);
-  };
+  // const handleBackToChannels = () => {
+  //   setViewingMessages(false);
+  // };
 
   // For mobile - show message area when viewing messages
   if (viewingMessages && (selectedChannelData || selectedDMData)) {
@@ -47,7 +47,7 @@ export default function Dashboard() {
       channelName: selectedChannelData?.name || null,
       dmId: selectedDMData?.id || null,
       dmName: selectedDMData?.name || null,
-      onBack: handleBackToChannels,
+      onBack: () => setViewingMessages(false),
     };
 
     return (

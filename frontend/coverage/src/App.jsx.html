@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>16/16</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>16/16</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -108,29 +108,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/*
 #######################################################################
 #
@@ -142,29 +142,29 @@
 #######################################################################
 */
 &nbsp;
-<span class="cstat-no" title="statement not covered" >import Login from './components/login';</span>
-<span class="cstat-no" title="statement not covered" >import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';</span>
-<span class="cstat-no" title="statement not covered" >import Dashboard from './components/Dashboard';</span>
-<span class="cstat-no" title="statement not covered" >import {WorkspaceProvider} from './context/WorkspaceContext';</span>
+import Login from './components/login';
+import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
+import Dashboard from './components/Dashboard';
+import {WorkspaceProvider} from './context/WorkspaceContext';
 &nbsp;
 /**
  * Simple component with no state.
  * @returns {object} JSX
  */
-<span class="cstat-no" title="statement not covered" >function App() {</span>
-<span class="cstat-no" title="statement not covered" >  return (</span>
-<span class="cstat-no" title="statement not covered" >    &lt;Router&gt;</span>
-<span class="cstat-no" title="statement not covered" >      &lt;WorkspaceProvider&gt;</span>
-<span class="cstat-no" title="statement not covered" >        &lt;Routes&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;Route path="/" element={&lt;Login /&gt;} /&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;Route path="/dashboard" element={&lt;Dashboard /&gt;} /&gt;</span>
-<span class="cstat-no" title="statement not covered" >        &lt;/Routes&gt;</span>
-<span class="cstat-no" title="statement not covered" >      &lt;/WorkspaceProvider&gt;</span>
-<span class="cstat-no" title="statement not covered" >    &lt;/Router&gt;</span>
+function App() {
+  return (
+    &lt;Router&gt;
+      &lt;WorkspaceProvider&gt;
+        &lt;Routes&gt;
+          &lt;Route path="/" element={&lt;Login /&gt;} /&gt;
+          &lt;Route path="/dashboard" element={&lt;Dashboard /&gt;} /&gt;
+        &lt;/Routes&gt;
+      &lt;/WorkspaceProvider&gt;
+    &lt;/Router&gt;
   );
-<span class="cstat-no" title="statement not covered" >}</span>
+}
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export default App;</span>
+export default App;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -172,7 +172,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-03-14T04:06:00.711Z
+                at 2025-03-15T04:21:48.214Z
             </div>
         <script src="../prettify.js"></script>
         <script>

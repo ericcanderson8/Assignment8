@@ -212,7 +212,7 @@ export default function MessageArea({
     <Paper
       elevation={0}
       sx={{
-        height: '100vh',
+        height: '90vh',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',

@@ -5,7 +5,7 @@ import Header from './Header';
 import Channels from './Channels';
 import MessageArea from './messaging/MessageArea';
 import {useWorkspace} from '../context/WorkspaceContext';
-
+import Footer from './footer';
 /**
  * Dashboard component shown after successful login
  * @returns {object} Dashboard UI
@@ -55,6 +55,7 @@ export default function Dashboard() {
         <MessageArea
           {...messageAreaProps}
         />
+        <Footer showingChannels={false} />
       </>
     );
   }
@@ -62,9 +63,15 @@ export default function Dashboard() {
   return (
     <>
       <Header />
-      <Container maxWidth="md">
+      <Container
+        maxWidth="md"
+        sx={{
+          paddingBottom: '64px',
+        }}
+      >
         <Channels />
       </Container>
+      <Footer showingChannels={true} />
     </>
   );
 }
